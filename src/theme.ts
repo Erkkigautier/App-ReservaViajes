@@ -1,0 +1,18 @@
+export const colors = {
+  bg: '#F4F5F7',
+  card: '#FFFFFF',
+  text: '#1F2328',
+  muted: '#667085',
+  border: '#D0D5DD',
+  primary: '#1D4ED8',
+  danger: '#C62828',
+  success: '#2E7D32',
+  seatFree: '#F05A28',
+  seatSelected: '#2E9E5B',
+  seatTaken: '#A0A4AB',
+  seatPending: '#F2C94C',
+  seatDriver: '#FFE066',
+  van: '#C9CCD1',
+  vanDark: '#4A4D52',
+  vanFloor: '#ECEDEF',
+};
