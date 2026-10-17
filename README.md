@@ -2,7 +2,17 @@
 
 Prototipo de app móvil para un servicio de transporte de viajes y tours en van: los pasajeros registran sus datos, adjuntan su comprobante de pago y eligen asiento; el conductor (administrador) valida o rechaza las reservas.
 
-Hecho con [Expo](https://expo.dev) (React Native + TypeScript), así que el mismo código corre en Android, iOS y navegador.
+## Maqueta (empieza aquí)
+
+Abre [`maqueta/reservaviajes.html`](maqueta/reservaviajes.html) con doble clic en cualquier navegador; no hace falta instalar nada. Las decisiones, los requisitos y el historial del proyecto están en [`docs/REGISTRO.md`](docs/REGISTRO.md).
+
+| Pasajero | Conductor |
+| --- | --- |
+| ![](docs/capturas/maqueta-pasajero.png) | ![](docs/capturas/maqueta-conductor.png) |
+
+## Prototipo Expo
+
+También hay un prototipo de app hecho con [Expo](https://expo.dev) (React Native + TypeScript), así que el mismo código corre en Android, iOS y navegador.
 
 ## Paneles
 
@@ -35,7 +45,7 @@ npm start          # muestra un QR para abrirlo en el celular con Expo Go
 - El PIN del conductor es fijo (`1234`) y solo sirve para la demo.
 - Hay un solo viaje con 7 asientos; aún no se manejan fechas, rutas ni varias unidades.
 
-## Capturas
+## Capturas del prototipo Expo
 
 | Pasajero | Confirmar asiento | Reserva registrada |
 | --- | --- | --- |

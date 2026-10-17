@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ReservaViajes</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap">
+<style>
+  /* Maqueta móvil: cabecera azul con pestañas de rol, tarjetas apiladas en una columna de 520px. Aspecto claro único. */
+  :root {
+    color-scheme: light;
+    --bg: #F2F4F7;
+    --card: #FFFFFF;
+    --ink: #1D2433;
+    --muted: #5F6B7E;
+    --line: #DCE1E8;
+    --navy: #0F2A5F;
+    --navy-soft: #C7D2FE;
+    --accent: #1D4ED8;
+    --ok: #2E7D32;
+    --warn: #B7791F;
+    --bad: #C62828;
+    --seat-free: #F05A28;
+    --seat-mine: #2E9E5B;
+    --seat-taken: #A0A4AB;
+    --seat-pending: #F2C94C;
+    --seat-driver: #FFE066;
+    --van: #C9CCD1;
+    --van-dark: #4A4D52;
+    --van-floor: #ECEDEF;
+    --font: "Figtree", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 15px; }
+  button, input { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+  header.top {
+    background: var(--navy);
+    padding-block: 18px 14px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .wrap { max-width: 520px; margin: 0 auto; }
+  .brand { color: #fff; font-size: 22px; font-weight: 800; margin: 0; }
+  .tagline { color: var(--navy-soft); font-size: 13px; margin: 2px 0 12px; }
+
+  .seg { display: flex; background: #E4E7EC; border-radius: 10px; padding: 3px; gap: 3px; }
+  .seg button { flex: 1; border: 0; background: transparent; padding: 8px 4px; border-radius: 8px; font-weight: 600; color: var(--muted); font-size: 14px; }
+  .seg button[aria-pressed="true"] { background: #fff; color: var(--ink); box-shadow: 0 1px 2px rgb(16 24 40 / .08); }
+
+  main {
+    padding-block: 16px 40px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .stack { display: grid; gap: 16px; }
+  .card { background: var(--card); border: 1px solid #E4E7EC; border-radius: 16px; padding: 16px; }
+  .card h2 { font-size: 18px; margin: 0; text-wrap: balance; }
+  .card .sub { color: var(--muted); font-size: 13px; margin: 4px 0 0; }
+  .card .body { margin-top: 14px; display: grid; gap: 12px; }
+
+  .field { display: grid; gap: 6px; min-width: 0; }
+  .field label, .label { font-size: 13px; font-weight: 600; }
+  .field input {
+    width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: #fff;
+  }
+  .field input::placeholder { color: #98A2B3; }
+  .field.has-error input { border-color: var(--bad); }
+  .err { color: var(--bad); font-size: 12px; margin: 0; }
+  .row2 { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; }
+
+  .btn { border: 0; border-radius: 10px; padding: 12px 16px; font-weight: 700; background: var(--accent); color: #fff; width: 100%; }
+  .btn:active { opacity: .85; }
+  .btn:disabled { opacity: .45; cursor: default; }
+  .btn.secondary { background: #fff; color: var(--ink); border: 1px solid var(--line); }
+  .btn.danger { background: var(--bad); }
+  .btn.success { background: var(--ok); }
+  .btn.small { padding: 6px 12px; width: auto; font-size: 13px; }
+  .btns { display: flex; gap: 10px; }
+  .btns .btn { flex: 1; }
+
+  .receipt { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: #FAFAFA; }
+  .receipt img { display: block; width: 100%; max-height: 220px; object-fit: contain; background: #fff; }
+  .receipt .pdf { height: 80px; display: grid; place-items: center; }
+  .receipt .pdf span { background: var(--bad); color: #fff; font-weight: 800; padding: 6px 12px; border-radius: 6px; }
+  .receipt .foot { display: flex; align-items: center; gap: 8px; padding: 8px; border-top: 1px solid #EEE; }
+  .receipt .name { flex: 1; min-width: 0; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* Van vista desde el techo */
+  .van-box { display: grid; justify-items: center; gap: 14px; }
+  .van {
+    position: relative; width: 260px; max-width: 100%;
+    background: var(--van); border: 2px solid var(--van-dark);
+    border-radius: 110px 110px 26px 26px; padding: 0 10px 10px;
+  }
+  .mirror { position: absolute; top: 120px; width: 20px; height: 8px; border-radius: 3px; background: var(--van-dark); }
+  .mirror.l { left: -16px; } .mirror.r { right: -16px; }
+  .hood { height: 70px; display: grid; place-items: center; }
+  .vent { width: 70px; height: 12px; border-radius: 6px; background: #9EA2A8; }
+  .cabin { background: var(--van-floor); border-radius: 14px; padding: 8px 8px 2px; }
+  .dash { height: 24px; border-radius: 12px; background: var(--van-dark); display: flex; justify-content: flex-end; align-items: center; padding-right: 14px; margin-bottom: 6px; }
+  .dash i { width: 60px; height: 10px; border-radius: 4px; background: #7C8087; }
+  .seats { display: flex; justify-content: space-between; margin-bottom: 12px; }
+  .seats.front { padding: 0 8px; }
+  .partition { display: flex; align-items: center; gap: 8px; height: 18px; border-radius: 4px; background: var(--van-dark); padding: 0 8px; margin-bottom: 12px; }
+  .partition b { width: 8px; height: 8px; border-radius: 50%; background: var(--van); }
+  .partition i { flex: 1; height: 3px; border-radius: 2px; background: #9EA2A8; }
+
+  .seat {
+    position: relative; width: 64px; height: 70px; border: 0; padding: 0; background: none;
+    display: grid; place-items: center; transition: transform .12s;
+  }
+  .seat:not(:disabled):active { transform: scale(.94); }
+  .seat:disabled { cursor: default; }
+  .seat .cushion { position: absolute; inset: 0 2px 4px; border-radius: 8px 8px 4px 4px; background: var(--seat-free); }
+  .seat .arm { position: absolute; left: 0; right: 0; bottom: 0; height: 60%; border: 3px solid #111; border-top: 0; border-bottom-width: 6px; border-radius: 0 0 8px 8px; }
+  .seat .num { position: relative; color: #fff; font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+  .seat[data-state="seleccionado"] .cushion { background: var(--seat-mine); }
+  .seat[data-state="ocupado"] .cushion, .seat[data-state="validado"] .cushion { background: var(--seat-taken); }
+  .seat[data-state="pendiente"] .cushion { background: var(--seat-pending); }
+  .seat[data-state="pendiente"] .num { color: var(--ink); }
+  .seat.driver .cushion { background: var(--seat-driver); }
+  .seat.driver .label-d { position: absolute; bottom: 10px; font-size: 9px; font-weight: 700; color: var(--ink); }
+  .wheel { position: absolute; top: -14px; left: 10px; width: 44px; height: 44px; }
+  @media (prefers-reduced-motion: reduce) { .seat { transition: none; } }
+
+  .legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 14px; font-size: 13px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { width: 16px; height: 16px; border-radius: 4px; display: inline-block; }
+  .selected { text-align: center; font-weight: 600; margin: 0; }
+
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .stat { background: #fff; border: 1px solid #E4E7EC; border-radius: 14px; padding: 12px 6px; text-align: center; }
+  .stat strong { display: block; font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .stat span { font-size: 12px; color: var(--muted); }
+
+  .list { display: grid; gap: 8px; }
+  .item {
+    display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+    padding: 12px; border-radius: 12px; border: 1px solid #E4E7EC; background: #FCFCFD;
+  }
+  .item:hover { background: #F6F7F9; }
+  .badge-seat { flex: none; width: 38px; height: 38px; border-radius: 8px; background: var(--seat-free); color: #fff; font-weight: 800; display: grid; place-items: center; }
+  .item .txt { flex: 1; min-width: 0; }
+  .item .t { font-weight: 700; }
+  .item .s { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .pill { flex: none; font-size: 12px; font-weight: 700; border: 1px solid currentColor; border-radius: 999px; padding: 3px 8px; }
+  .pill.pendiente { color: var(--warn); } .pill.validada { color: var(--ok); } .pill.rechazada { color: var(--bad); }
+  .ex { font-size: 11px; font-weight: 600; color: var(--muted); background: #EEF0F3; border-radius: 4px; padding: 1px 5px; margin-left: 6px; }
+  .empty { text-align: center; color: var(--muted); padding: 16px 0; margin: 0; }
+
+  .info { display: grid; }
+  .info div { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid #F0F1F3; }
+  .info dt { color: var(--muted); font-size: 13px; }
+  .info dd { margin: 0; font-weight: 600; text-align: right; min-width: 0; overflow-wrap: anywhere; }
+
+  .backdrop { position: fixed; inset: 0; background: rgb(16 24 40 / .55); display: grid; place-items: center; z-index: 20;
+    padding-block: max(20px, env(safe-area-inset-top, 0px)) max(20px, env(safe-area-inset-bottom, 0px));
+    padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  .dialog { background: #fff; border-radius: 16px; padding: 20px; width: 100%; max-width: 420px; max-height: 100%; overflow-y: auto; display: grid; gap: 12px; }
+  .dialog h3 { margin: 0; font-size: 18px; }
+  .dialog p { margin: 0; color: var(--muted); line-height: 1.45; }
+  .code { font-size: 28px; font-weight: 800; color: var(--accent); text-align: center; letter-spacing: 1px; }
+  .foot-note { text-align: center; color: var(--muted); font-size: 12px; margin: 20px 0 0; }
+</style>
+
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <h1 class="brand">ReservaViajes</h1>
+    <p class="tagline">Viajes y tours en van · reserva tu asiento</p>
+    <div class="seg" role="group" aria-label="Rol">
+      <button id="tab-pasajero" aria-pressed="true">Pasajero</button>
+      <button id="tab-conductor" aria-pressed="false">Conductor</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <!-- Paneles 1 y 2: pasajero -->
+    <section id="view-pasajero" class="stack">
+      <form id="form" class="card" novalidate>
+        <h2>1. Datos del pasajero</h2>
+        <p class="sub">Completa tus datos y adjunta el comprobante de pago.</p>
+        <div class="body">
+          <div class="field" data-f="nombre">
+            <label for="f-nombre">Nombres completos</label>
+            <input id="f-nombre" autocomplete="name" placeholder="Ej. María López Quispe">
+            <p class="err" hidden></p>
+          </div>
+          <div class="row2">
+            <div class="field" data-f="dni">
+              <label for="f-dni">DNI</label>
+              <input id="f-dni" inputmode="numeric" maxlength="8" placeholder="8 dígitos">
+              <p class="err" hidden></p>
+            </div>
+            <div class="field" data-f="edad">
+              <label for="f-edad">Edad</label>
+              <input id="f-edad" inputmode="numeric" maxlength="3" placeholder="Años">
+              <p class="err" hidden></p>
+            </div>
+          </div>
+          <div class="field" data-f="origen">
+            <label for="f-origen">Punto de origen o recojo</label>
+            <input id="f-origen" placeholder="Ej. Plaza de Armas">
+            <p class="err" hidden></p>
+          </div>
+          <div class="field" data-f="destino">
+            <label for="f-destino">Punto de destino</label>
+            <input id="f-destino" placeholder="Ej. Terminal Norte">
+            <p class="err" hidden></p>
+          </div>
+          <div class="field">
+            <span class="label" id="retorno-label">¿Requiere retorno?</span>
+            <div class="seg" role="group" aria-labelledby="retorno-label">
+              <button type="button" id="ret-no" aria-pressed="true">No</button>
+              <button type="button" id="ret-si" aria-pressed="false">Sí</button>
+            </div>
+          </div>
+          <div class="field" data-f="comprobante">
+            <span class="label">Boleta o factura del pago</span>
+            <input id="f-file" type="file" accept="image/*,application/pdf" hidden>
+            <div id="receipt-slot"></div>
+            <button type="button" class="btn secondary" id="btn-file">Cargar foto o archivo (JPG, PNG, PDF)</button>
+            <p class="err" hidden></p>
+          </div>
+        </div>
+      </form>
+
+      <section class="card">
+        <h2>2. Elige tu asiento</h2>
+        <p class="sub" id="free-count"></p>
+        <div class="body">
+          <div class="van-box" id="van-pasajero"></div>
+          <p class="selected" id="selected-seat"></p>
+          <p class="err" id="seat-err" hidden style="text-align:center"></p>
+        </div>
+      </section>
+
+      <button class="btn" id="btn-save">Guardar y reservar</button>
+    </section>
+
+    <!-- Panel 3: conductor -->
+    <section id="view-conductor" class="stack" hidden>
+      <form class="card" id="login">
+        <h2>3. Panel del conductor</h2>
+        <p class="sub">Ingresa el PIN de administrador para gestionar las reservas.</p>
+        <div class="body">
+          <div class="field" id="pin-field">
+            <label for="f-pin">PIN</label>
+            <input id="f-pin" type="password" inputmode="numeric" maxlength="4" placeholder="PIN de 4 dígitos (demo: 1234)">
+            <p class="err" hidden></p>
+          </div>
+          <button class="btn" type="submit">Ingresar</button>
+        </div>
+      </form>
+
+      <div id="dashboard" class="stack" hidden>
+        <div class="stats">
+          <div class="stat"><strong id="st-pend" style="color:var(--warn)">0</strong><span>Pendientes</span></div>
+          <div class="stat"><strong id="st-val" style="color:var(--ok)">0</strong><span>Validadas</span></div>
+          <div class="stat"><strong id="st-libres" style="color:var(--accent)">0</strong><span>Libres</span></div>
+        </div>
+        <section class="card">
+          <h2>Ocupación de la van</h2>
+          <p class="sub">Toca un asiento ocupado para ver su reserva.</p>
+          <div class="body"><div class="van-box" id="van-conductor"></div></div>
+        </section>
+        <section class="card">
+          <h2>Solicitudes de reserva</h2>
+          <div class="body">
+            <div class="seg" role="group" aria-label="Filtro" id="filters">
+              <button data-filter="pendiente" aria-pressed="true">Pendientes</button>
+              <button data-filter="validada" aria-pressed="false">Validadas</button>
+              <button data-filter="rechazada" aria-pressed="false">Rechazadas</button>
+              <button data-filter="todas" aria-pressed="false">Todas</button>
+            </div>
+            <div class="list" id="list"></div>
+          </div>
+        </section>
+        <div class="btns">
+          <button class="btn secondary" id="btn-logout">Cerrar sesión</button>
+          <button class="btn danger" id="btn-reset">Reiniciar viaje</button>
+        </div>
+      </div>
+    </section>
+
+    <p class="foot-note">Maqueta de demostración: los datos se guardan solo en este navegador.</p>
+  </div>
+</main>
+
+<div class="backdrop" id="modal" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <h3 id="modal-title"></h3>
+    <div id="modal-body" style="display:grid;gap:12px"></div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const KEY = 'reservaviajes:maqueta:v1';
+  const PIN = '1234';
+  const $ = (s, el = document) => el.querySelector(s);
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  // Comprobante de ejemplo dibujado como SVG.
+  const sampleReceipt = (n, monto) => 'data:image/svg+xml;utf8,' + encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="380" viewBox="0 0 300 380"><rect width="300" height="380" fill="#fff"/><rect x="10" y="10" width="280" height="360" fill="none" stroke="#ccc"/><text x="150" y="50" font-family="sans-serif" font-size="15" font-weight="700" text-anchor="middle">BOLETA DE VENTA ELECTRÓNICA</text><text x="150" y="75" font-family="sans-serif" font-size="13" text-anchor="middle">B001-${n}</text><text x="30" y="130" font-family="sans-serif" font-size="13">Servicio de transporte turístico</text><text x="30" y="155" font-family="sans-serif" font-size="13">1 asiento · Van</text><line x1="30" y1="290" x2="270" y2="290" stroke="#999"/><text x="30" y="320" font-family="sans-serif" font-size="16" font-weight="700">TOTAL</text><text x="270" y="320" font-family="sans-serif" font-size="16" font-weight="700" text-anchor="end">S/ ${monto}</text></svg>`);
+
+  const examples = () => [
+    { id: 'ej1', code: 'RV-4F2A91', createdAt: new Date(Date.now() - 3600e3).toISOString(), fullName: 'Lucía Huamán Torres', dni: '41257893', age: 29, origin: 'Plaza San Martín', destination: 'Paracas', needsReturn: true, seat: 2, receipt: { name: 'boleta-B001-000231.svg', type: 'image/svg+xml', uri: sampleReceipt('000231', '80.00') }, status: 'validada', example: true },
+    { id: 'ej2', code: 'RV-9C07E3', createdAt: new Date(Date.now() - 900e3).toISOString(), fullName: 'Carlos Mendoza Ríos', dni: '72014568', age: 41, origin: 'Óvalo de Miraflores', destination: 'Huacachina', needsReturn: false, seat: 5, receipt: { name: 'boleta-B001-000245.svg', type: 'image/svg+xml', uri: sampleReceipt('000245', '95.00') }, status: 'pendiente', example: true },
+  ];
+
+  let memory = null;
+  const load = () => {
+    try { const raw = localStorage.getItem(KEY); if (raw) return JSON.parse(raw); } catch {}
+    return memory ?? (memory = examples());
+  };
+  const save = (list) => { memory = list; try { localStorage.setItem(KEY, JSON.stringify(list)); } catch {} };
+  const active = (list) => list.filter((r) => r.status !== 'rechazada');
+  const taken = (list, seat) => active(list).some((r) => r.seat === seat);
+
+  // ---------- Mapa de la van ----------
+  const WHEEL = '<svg class="wheel" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="18.5" fill="none" stroke="#8A8E94" stroke-width="5"/><rect x="5" y="20" width="34" height="4" fill="#8A8E94"/><rect x="20" y="22" width="4" height="17" fill="#8A8E94"/><circle cx="22" cy="22" r="6" fill="#6D7177"/></svg>';
+  const LAYOUT = { front: [1], back: [[2, 3, 4], [5, 6, 7]] };
+
+  function renderVan(el, stateOf, onPick, clickable, legend) {
+    const seat = (n) => {
+      const st = stateOf(n);
+      const can = clickable.includes(st);
+      return `<button class="seat" data-seat="${n}" data-state="${st}" ${can ? '' : 'disabled'} aria-label="Asiento ${n}, ${st}"><span class="cushion"></span><span class="arm"></span><span class="num">${n}</span></button>`;
+    };
+    el.innerHTML = `
+      <div class="van">
+        <span class="mirror l"></span><span class="mirror r"></span>
+        <div class="hood"><span class="vent"></span></div>
+        <div class="cabin">
+          <div class="dash"><i></i></div>
+          <div class="seats front">
+            <div class="seat driver" aria-label="Asiento del conductor"><span class="cushion"></span><span class="arm"></span>${WHEEL}<span class="label-d">Conductor</span></div>
+            ${LAYOUT.front.map(seat).join('')}
+          </div>
+          <div class="partition"><b></b><i></i><b></b></div>
+          ${LAYOUT.back.map((row) => `<div class="seats">${row.map(seat).join('')}</div>`).join('')}
+        </div>
+      </div>
+      <div class="legend">${legend.map(([c, t]) => `<span><i style="background:var(${c})"></i>${t}</span>`).join('')}</div>`;
+    el.querySelectorAll('.seat[data-seat]').forEach((b) => b.addEventListener('click', () => onPick(Number(b.dataset.seat))));
+  }
+
+  // ---------- Ventanas ----------
+  const modal = $('#modal');
+  function openModal(title, html, bind) {
+    $('#modal-title').textContent = title;
+    $('#modal-body').innerHTML = html;
+    modal.hidden = false;
+    bind?.($('#modal-body'));
+    $('#modal-body button')?.focus();
+  }
+  const closeModal = () => { modal.hidden = true; };
+  modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !modal.hidden) closeModal(); });
+
+  const receiptHtml = (r) => `
+    <div class="receipt">
+      ${r.type.startsWith('image/') ? `<img src="${r.uri}" alt="Comprobante ${esc(r.name)}">` : '<div class="pdf"><span>PDF</span></div>'}
+      <div class="foot"><span class="name">${esc(r.name)}</span><a class="btn secondary small" href="${r.uri}" target="_blank" rel="noopener">Abrir</a></div>
+    </div>`;
+
+  // ---------- Pestañas ----------
+  const tabs = { pasajero: $('#tab-pasajero'), conductor: $('#tab-conductor') };
+  function showTab(name) {
+    for (const [k, b] of Object.entries(tabs)) b.setAttribute('aria-pressed', String(k === name));
+    $('#view-pasajero').hidden = name !== 'pasajero';
+    $('#view-conductor').hidden = name !== 'conductor';
+    name === 'pasajero' ? renderPassenger() : renderDriver();
+  }
+  tabs.pasajero.addEventListener('click', () => showTab('pasajero'));
+  tabs.conductor.addEventListener('click', () => showTab('conductor'));
+
+  // ---------- Paneles 1 y 2: pasajero ----------
+  let needsReturn = false;
+  let receipt = null;
+  let seat = null;
+
+  const setErr = (key, msg) => {
+    const f = document.querySelector(`.field[data-f="${key}"]`);
+    if (!f) return;
+    f.classList.toggle('has-error', !!msg);
+    const p = f.querySelector('.err'); p.textContent = msg || ''; p.hidden = !msg;
+  };
+  ['nombre', 'dni', 'edad', 'origen', 'destino'].forEach((k) => $('#f-' + k).addEventListener('input', (e) => {
+    if (k === 'dni' || k === 'edad') e.target.value = e.target.value.replace(/\D/g, '');
+    setErr(k, '');
+  }));
+
+  const setReturn = (v) => { needsReturn = v; $('#ret-si').setAttribute('aria-pressed', String(v)); $('#ret-no').setAttribute('aria-pressed', String(!v)); };
+  $('#ret-si').addEventListener('click', () => setReturn(true));
+  $('#ret-no').addEventListener('click', () => setReturn(false));
+
+  $('#btn-file').addEventListener('click', () => $('#f-file').click());
+  $('#f-file').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 4 * 1024 * 1024) { setErr('comprobante', 'El archivo pesa más de 4 MB. Usa una foto más liviana.'); return; }
+    const reader = new FileReader();
+    reader.onload = () => {
+      receipt = { name: file.name, type: file.type || 'application/octet-stream', uri: reader.result };
+      $('#receipt-slot').innerHTML = receiptHtml(receipt);
+      $('#btn-file').textContent = 'Cambiar archivo';
+      setErr('comprobante', '');
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  });
+
+  function renderPassenger() {
+    const list = load();
+    const free = [1, 2, 3, 4, 5, 6, 7].filter((n) => !taken(list, n)).length;
+    $('#free-count').textContent = `Toca un asiento libre para seleccionarlo. Quedan ${free} de 7 disponibles.`;
+    renderVan($('#van-pasajero'), (n) => (n === seat ? 'seleccionado' : taken(list, n) ? 'ocupado' : 'libre'), askSeat, ['libre', 'seleccionado'],
+      [['--seat-free', 'Libre'], ['--seat-mine', 'Tu asiento'], ['--seat-taken', 'Ocupado']]);
+    $('#selected-seat').textContent = seat ? `Asiento seleccionado: ${seat}` : 'Aún no has seleccionado un asiento.';
+  }
+
+  function askSeat(n) {
+    openModal(`¿Confirmas el asiento ${n}?`,
+      `<p>${seat && seat !== n ? `Reemplazará tu selección actual (asiento ${seat}).` : 'Este asiento quedará asignado a tu reserva al guardar el registro.'}</p>
+       <div class="btns"><button class="btn secondary" data-a="no">Cancelar</button><button class="btn success" data-a="si">Confirmar</button></div>`,
+      (b) => {
+        b.querySelector('[data-a="no"]').onclick = closeModal;
+        b.querySelector('[data-a="si"]').onclick = () => { seat = n; $('#seat-err').hidden = true; closeModal(); renderPassenger(); };
+      });
+  }
+
+  $('#btn-save').addEventListener('click', () => {
+    const v = (k) => $('#f-' + k).value.trim();
+    const errs = {};
+    if (v('nombre').split(/\s+/).filter(Boolean).length < 2) errs.nombre = 'Ingresa nombres y apellidos.';
+    if (!/^\d{8}$/.test(v('dni'))) errs.dni = 'El DNI debe tener 8 dígitos.';
+    const edad = Number(v('edad'));
+    if (!Number.isInteger(edad) || edad < 1 || edad > 120) errs.edad = 'Ingresa una edad válida.';
+    if (!v('origen')) errs.origen = 'Indica el punto de origen o recojo.';
+    if (!v('destino')) errs.destino = 'Indica el punto de destino.';
+    if (!receipt) errs.comprobante = 'Adjunta la boleta o factura del pago.';
+    ['nombre', 'dni', 'edad', 'origen', 'destino', 'comprobante'].forEach((k) => setErr(k, errs[k]));
+    $('#seat-err').hidden = !!seat; $('#seat-err').textContent = 'Selecciona y confirma un asiento.';
+    if (Object.keys(errs).length || !seat) {
+      document.querySelector('.has-error input, .has-error button, #seat-err:not([hidden])')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    const list = load();
+    if (taken(list, seat)) {
+      seat = null; renderPassenger();
+      openModal('Asiento no disponible', '<p>Otra persona acaba de reservar ese asiento. Elige otro, por favor.</p><button class="btn">Entendido</button>', (b) => (b.querySelector('button').onclick = closeModal));
+      return;
+    }
+    const r = {
+      id: Date.now().toString(36), code: 'RV-' + Math.floor(Math.random() * 16 ** 6).toString(16).toUpperCase().padStart(6, '0'),
+      createdAt: new Date().toISOString(), fullName: v('nombre'), dni: v('dni'), age: edad, origin: v('origen'), destination: v('destino'),
+      needsReturn, seat, receipt, status: 'pendiente',
+    };
+    save([...list, r]);
+    openModal('¡Reserva registrada!',
+      `<div class="code">${r.code}</div>
+       <p>Asiento ${r.seat} · ${esc(r.origin)} → ${esc(r.destination)}${r.needsReturn ? ' (con retorno)' : ''}</p>
+       <p>Tu reserva está activa y el conductor validará tu comprobante de pago. Guarda este código.</p>
+       <button class="btn">Hacer otra reserva</button>`,
+      (b) => (b.querySelector('button').onclick = () => { closeModal(); resetForm(); }));
+  });
+
+  function resetForm() {
+    $('#form').reset(); setReturn(false); receipt = null; seat = null;
+    $('#receipt-slot').innerHTML = ''; $('#btn-file').textContent = 'Cargar foto o archivo (JPG, PNG, PDF)';
+    ['nombre', 'dni', 'edad', 'origen', 'destino', 'comprobante'].forEach((k) => setErr(k, ''));
+    $('#seat-err').hidden = true;
+    renderPassenger();
+    window.scrollTo({ top: 0 });
+  }
+
+  // ---------- Panel 3: conductor ----------
+  let logged = false;
+  let filter = 'pendiente';
+  const statusLabel = { pendiente: 'Pendiente', validada: 'Validada', rechazada: 'Rechazada' };
+
+  $('#login').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const f = $('#pin-field'), p = f.querySelector('.err');
+    if ($('#f-pin').value === PIN) { logged = true; $('#f-pin').value = ''; f.classList.remove('has-error'); p.hidden = true; renderDriver(); }
+    else { f.classList.add('has-error'); p.textContent = 'PIN incorrecto.'; p.hidden = false; }
+  });
+  $('#btn-logout').addEventListener('click', () => { logged = false; renderDriver(); });
+  $('#filters').addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    filter = b.dataset.filter;
+    $('#filters').querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    renderDriver();
+  });
+  $('#btn-reset').addEventListener('click', () => openModal('¿Reiniciar el viaje?',
+    '<p>Se borrarán todas las reservas guardadas en este navegador y se cargarán de nuevo las dos reservas de ejemplo.</p><div class="btns"><button class="btn secondary" data-a="no">Cancelar</button><button class="btn danger" data-a="si">Reiniciar</button></div>',
+    (b) => {
+      b.querySelector('[data-a="no"]').onclick = closeModal;
+      b.querySelector('[data-a="si"]').onclick = () => { memory = null; try { localStorage.removeItem(KEY); } catch {} closeModal(); renderDriver(); };
+    }));
+
+  function renderDriver() {
+    $('#login').hidden = logged;
+    $('#dashboard').hidden = !logged;
+    if (!logged) return;
+    const list = load();
+    const act = active(list);
+    $('#st-pend').textContent = list.filter((r) => r.status === 'pendiente').length;
+    $('#st-val').textContent = list.filter((r) => r.status === 'validada').length;
+    $('#st-libres').textContent = 7 - act.length;
+    renderVan($('#van-conductor'), (n) => { const r = act.find((x) => x.seat === n); return !r ? 'libre' : r.status === 'validada' ? 'validado' : 'pendiente'; },
+      (n) => { const r = act.find((x) => x.seat === n); if (r) showReservation(r.id); }, ['pendiente', 'validado'],
+      [['--seat-free', 'Libre'], ['--seat-pending', 'Por validar'], ['--seat-taken', 'Validado']]);
+    const shown = list.filter((r) => filter === 'todas' || r.status === filter).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    $('#list').innerHTML = shown.length ? shown.map((r) => `
+      <button class="item" data-id="${r.id}">
+        <span class="badge-seat">${r.seat}</span>
+        <span class="txt">
+          <div class="t">${esc(r.fullName)}${r.example ? '<span class="ex">Ejemplo</span>' : ''}</div>
+          <div class="s">${esc(r.origin)} → ${esc(r.destination)}${r.needsReturn ? ' · con retorno' : ''}</div>
+          <div class="s">${r.code} · ${new Date(r.createdAt).toLocaleString('es-PE', { dateStyle: 'short', timeStyle: 'short' })}</div>
+        </span>
+        <span class="pill ${r.status}">${statusLabel[r.status]}</span>
+      </button>`).join('') : '<p class="empty">No hay solicitudes en esta vista.</p>';
+    $('#list').querySelectorAll('.item').forEach((b) => b.addEventListener('click', () => showReservation(b.dataset.id)));
+  }
+
+  function showReservation(id) {
+    const r = load().find((x) => x.id === id);
+    if (!r) return;
+    const row = (k, v) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`;
+    openModal(`Reserva ${r.code}`, `
+      <span class="pill ${r.status}" style="justify-self:start">${statusLabel[r.status]}</span>
+      <dl class="info" style="margin:0">
+        ${row('Pasajero', r.fullName)}${row('DNI', r.dni)}${row('Edad', r.age + ' años')}${row('Origen / recojo', r.origin)}
+        ${row('Destino', r.destination)}${row('Retorno', r.needsReturn ? 'Sí' : 'No')}${row('Asiento', r.seat)}
+      </dl>
+      <span class="label">Comprobante de pago</span>
+      ${receiptHtml(r.receipt)}
+      <div class="field"><label for="f-nota">Nota para el registro (opcional)</label><input id="f-nota" placeholder="Ej. Monto no coincide" value="${esc(r.driverNote || '')}"></div>
+      <p class="err" id="decide-err" hidden></p>
+      <div class="btns">
+        <button class="btn danger" data-a="rechazada" ${r.status === 'rechazada' ? 'disabled' : ''}>Rechazar</button>
+        <button class="btn success" data-a="validada" ${r.status === 'validada' ? 'disabled' : ''}>Validar</button>
+      </div>
+      ${r.status === 'rechazada' ? '<p>El asiento quedó libre. Solo se puede validar de nuevo si sigue libre.</p>' : ''}
+      <button class="btn secondary" data-a="cerrar">Cerrar</button>`,
+      (b) => {
+        b.querySelector('[data-a="cerrar"]').onclick = closeModal;
+        b.querySelectorAll('[data-a="rechazada"],[data-a="validada"]').forEach((btn) => (btn.onclick = () => {
+          const status = btn.dataset.a;
+          const list = load();
+          if (status === 'validada' && taken(list.filter((x) => x.id !== id), r.seat)) {
+            const e = b.querySelector('#decide-err'); e.textContent = `El asiento ${r.seat} ya fue tomado por otra reserva.`; e.hidden = false; return;
+          }
+          const note = b.querySelector('#f-nota').value.trim();
+          save(list.map((x) => (x.id === id ? { ...x, status, driverNote: note || undefined } : x)));
+          closeModal(); renderDriver();
+        }));
+      });
+  }
+
+  renderPassenger();
+})();
+</script>
+
+</body>
+</html>
