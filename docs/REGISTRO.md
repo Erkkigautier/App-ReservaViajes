@@ -13,6 +13,8 @@ Servicio de transporte para viajes y tours en van. Los pasajeros reservan su asi
 | `maqueta/reservaviajes.html` | **Maqueta visual** en un solo archivo HTML. Se abre con doble clic en cualquier navegador, sin instalar nada. | Entregable principal actual |
 | `App.tsx`, `src/` | Prototipo de app móvil hecho con Expo (React Native + TypeScript). Hace lo mismo que la maqueta, pero puede correr en Android, iOS y web. | Base para cuando se pase a una app real |
 | `docs/capturas/` | Capturas de pantalla de la maqueta y del prototipo Expo. | Referencia |
+| `docs/powerapps/GUIA.md` | **Guía paso a paso** de la versión real con Microsoft 365 E3: listas de SharePoint, Forms, flujo de Power Automate y app del conductor en Power Apps. | Plan de construcción actual |
+| `docs/powerapps/van-asientos.png` | Imagen de la van con los asientos numerados para insertar en el Forms. | Lista para usar |
 | `docs/REGISTRO.md` | Este documento. | Mantener al día |
 
 Vista previa en línea de la maqueta: https://claude.ai/artifact/Ccz8joiktDWjBcxAn1gy8P (es privada; se comparte desde el menú *Share* de la página).
@@ -33,12 +35,15 @@ Vista previa en línea de la maqueta: https://claude.ai/artifact/Ccz8joiktDWjBcx
 | Colores de asientos | Libre: naranja · Tu asiento: verde · Ocupado/validado: gris · Por validar (conductor): amarillo · Conductor: amarillo claro. | Tomados de la imagen de referencia, más los estados que necesita la app. |
 | Validaciones del pasajero | Nombre con al menos 2 palabras, DNI de 8 dígitos, edad entre 1 y 120, origen y destino obligatorios, comprobante obligatorio, asiento confirmado. | DNI peruano de 8 dígitos. |
 | Comprobante | Se acepta foto (JPG, PNG, etc.) o PDF. En la maqueta, máximo 4 MB. | Boleta o factura según el pedido. |
-| Estados de reserva | `pendiente` al guardar → el conductor la pasa a `validada` o `rechazada`. Rechazar libera el asiento. | La reserva se “activa” al guardar y el pago lo confirma el conductor. |
+| Estados de reserva | `pendiente` al guardar → el conductor la pasa a `validada` o `rechazada`. Rechazar libera el asiento. En la versión de Microsoft se agrega `Conflicto`. | La reserva se “activa” al guardar y el pago lo confirma el conductor. |
 | Acceso del conductor | PIN de demostración `1234`. | Solo para la maqueta; no es seguro para uso real. |
 | Código de reserva | `RV-` más 6 caracteres hexadecimales (ej. `RV-4F2A91`). | Para que el pasajero tenga un comprobante de su reserva. |
 | Datos | Se guardan solo en el navegador o dispositivo (localStorage / AsyncStorage). No hay servidor. | Alcance de maqueta. Pasajero y conductor deben usar el mismo navegador para ver los mismos datos. |
 | Datos de ejemplo (maqueta) | Trae 2 reservas marcadas “Ejemplo” (asiento 2 validada, asiento 5 pendiente). “Reiniciar viaje” vuelve a ese estado. | Para que la maqueta no se vea vacía al abrirla. |
 | Tecnología del prototipo | Expo SDK 58 + TypeScript. | Un solo código para Android, iOS y web. |
+| Plataforma de la versión real (22/10/2026) | Microsoft Forms (pasajero) → Power Automate → listas de SharePoint → Power Apps de lienzo (conductor). Detalle en `docs/powerapps/GUIA.md`. | App pública para celular, sin gastos ni dominio, usando solo la licencia Microsoft 365 E3. Power Pages, Dataverse y conectores premium no están incluidos en E3. |
+| Comprobante en la versión real | El pasajero escribe medio de pago, n.º de operación, monto y fecha; el conductor lo verifica. | Forms abierto a cualquiera no permite subir archivos. |
+| Asiento en la versión real | Imagen de la van + pregunta "Asiento 1–7"; el flujo detecta asientos ya tomados y marca la reserva como `Conflicto`. | Forms no permite un mapa interactivo ni ocultar opciones. |
 
 ## Ideas en pausa
 
@@ -56,3 +61,4 @@ Vista previa en línea de la maqueta: https://claude.ai/artifact/Ccz8joiktDWjBcx
 | 17/10/2026 | Prototipo Expo con los 3 paneles (PR #1, fusionado en `main`). |
 | 17/10/2026 | Se empezó la integración con Supabase y se pausó a pedido del usuario. |
 | 17/10/2026 | Maqueta en un solo archivo HTML (`maqueta/reservaviajes.html`) y este registro. |
+| 22/10/2026 | Se decidió construir con Microsoft 365 E3 (Forms + Power Automate + SharePoint + Power Apps). Guía de construcción e imagen de asientos en `docs/powerapps/`. |
